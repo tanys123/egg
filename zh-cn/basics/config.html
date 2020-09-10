@@ -215,7 +215,7 @@ mobileTrigger.onclick = function(e) {
 <p>框架支持根据环境来加载配置，定义多个环境的配置文件，具体环境请查看<a href="./env.html">运行环境配置</a></p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">config</span><br><span class="line">|- config.default.js</span><br><span class="line">|- config.prod.js</span><br><span class="line">|- config.unittest.js</span><br><span class="line">`- config.local.js</span><br></pre></td></tr></table></figure>
 <p><code>config.default.js</code> 为默认的配置文件，所有环境都会加载这个配置文件，一般也会作为开发环境的默认配置文件。</p>
-<p>当指定 env 时会同时加载对应的配置文件，并覆盖默认配置文件的同名配置。如 <code>prod</code> 环境会加载 <code>config.prod.js</code> 和 <code>config.default.js</code> 文件，<code>config.prod.js</code> 会覆盖 <code>config.default.js</code> 的同名配置。</p>
+<p>当指定 env 时会同时加载默认配置和对应的配置(具名配置)文件，具名配置和默认配置将合并(使用<a href="https://www.npmjs.com/package/extend2" target="_blank" rel="noopener">extend2</a>深拷贝)成最终配置，具名配置项会覆盖默认配置文件的同名配置。如 <code>prod</code> 环境会加载 <code>config.prod.js</code> 和 <code>config.default.js</code> 文件，<code>config.prod.js</code> 会覆盖 <code>config.default.js</code> 的同名配置。</p>
 <h3 id="配置写法"><a class="markdown-anchor" href="#配置写法">#</a> 配置写法</h3>
 <p>配置文件返回的是一个 object 对象，可以覆盖框架的一些配置，应用也可以将自己业务的配置放到这里方便管理。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 配置 logger 文件的目录，logger 默认配置由框架提供</span></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  logger: &#123;</span><br><span class="line">    dir: <span class="string">'/home/admin/logs/demoapp'</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
