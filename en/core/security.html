@@ -329,7 +329,7 @@ Use SHTML to output HTML tags, while executing XSS filtering, then it can filter
 <p>Synchronizer Tokens：When the response page is rendered, token is rendered in the page, which will be submitted through a hidden input when a form is submitted.</p>
 </li>
 <li>
-<p>Double Cookie Defense：The token will be stored in client Cookie, Cookie will be submitted when you submit a post request, then you can get the token, and submit the token through header or body, service side will compare and check it.</p>
+<p>Double Cookie Defense：The token will be stored in client Cookie, Cookie will be submitted when you submit a POST/PUT/PATCH/DELETE request, then you can get the token, and submit the token through header or body, service side will compare and check it.</p>
 </li>
 <li>
 <p>Custom Header：Trust request with specific header（like <code>X-Requested-With: XMLHttpRequest</code>）. This can be bypassed, so frameworks like rails and django <a href="https://www.djangoproject.com/weblog/2011/feb/08/security/" target="_blank" rel="noopener">give up the guard</a>.</p>
