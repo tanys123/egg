@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head><meta name="generator" content="Hexo 3.9.0">
-  <title>egg - Born to build better enterprise frameworks and apps</title>
+  <title>Egg@2 Upgrade guideline - Born to build better enterprise frameworks and apps</title>
   <meta charset="utf-8">
   <meta name="description" content="index.description">
   <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
@@ -202,15 +202,176 @@ mobileTrigger.onclick = function(e) {
   <div class="content">
     <div class="doc">
       <article class="markdown-body">
-        <h1></h1>
-          <p>this document is still waiting for translation, see <a href="/zh-cn/migration.html">Chinese Version</a></p>
+        <h1>Egg@2 Upgrade guideline</h1>
+          <h2 id="background"><a class="markdown-anchor" href="#background">#</a> Background</h2>
+<p>With the official release of Node.js 8 LTS, egg now comes with built-in ES2017 Async Function support.</p>
+<p>Though the TJ <a href="https://github.com/tj/co" target="_blank" rel="noopener">co</a> has brought <code>async/await</code> programming experience before this, but it also has some inevitable problems:</p>
+<ul>
+<li>performance lost</li>
+<li><a href="https://github.com/eggjs/egg/wiki/co-vs-async" target="_blank" rel="noopener">obscure error logs</a></li>
+</ul>
+<p>In the official Egg 2.x:</p>
+<ul>
+<li>Full compatibility to Egg 1.x and <code>generator function</code>.</li>
+<li>Koa 2.x based <code>async function</code> solutions.</li>
+<li>Only support Node.js 8 and above.</li>
+<li>Better error stack messages without <a href="https://github.com/tj/co" target="_blank" rel="noopener">co</a>, approximately 30% performance improvement (do not include the performance improvement brought by Node), see <a href="https://eggjs.github.io/benchmark/plot/" target="_blank" rel="noopener">benchmark</a> for more details.</li>
+</ul>
+<p>One of the Egg's concept is <code>progressive</code>, hence we provide progressive programming experiences to developers.</p>
+<ul>
+<li><a href="#quick_upgrade">Quick upgrade</a></li>
+<li><a href="#plugin">Plugin update</a></li>
+<li><a href="#forther_upgrade">Further upgrade</a></li>
+<li><a href="#upgrade_documents_for_plugin_developers">Upgrade documents for Plugin developers</a></li>
+</ul>
+<h2 id="quick-upgrade"><a class="markdown-anchor" href="#quick-upgrade">#</a> Quick upgrade</h2>
+<ul>
+<li>Use the latest Node LTS version (<code>&gt;=8.9.0</code>).</li>
+<li>Change <code>egg</code> version to <code>^2.0.0</code> in <code>package.json</code>.</li>
+<li>Check if included plugins are the latest version (optional).</li>
+<li>Reinstall the dependencies, and run unit tests again.</li>
+</ul>
+<p><strong>Done! Barely with any code changes</strong></p>
+<h2 id="plugin-update"><a class="markdown-anchor" href="#plugin-update">#</a> Plugin update</h2>
+<h3 id="egg-multipart"><a class="markdown-anchor" href="#egg-multipart">#</a> egg-multipart</h3>
+<p><code>yield parts</code> needs to change to <code>await parts()</code> or <code>yield parts()</code></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// old</span></span><br><span class="line"><span class="keyword">const</span> parts = ctx.multipart();</span><br><span class="line"><span class="keyword">while</span> ((part = <span class="keyword">yield</span> parts) != <span class="literal">null</span>) &#123;</span><br><span class="line">  <span class="comment">// do something</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// yield parts() also work</span></span><br><span class="line"><span class="keyword">while</span> ((part = <span class="keyword">yield</span> parts()) != <span class="literal">null</span>) &#123;</span><br><span class="line">  <span class="comment">// do something</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// new</span></span><br><span class="line"><span class="keyword">const</span> parts = ctx.multipart();</span><br><span class="line"><span class="keyword">while</span> ((part = <span class="keyword">await</span> parts()) != <span class="literal">null</span>) &#123;</span><br><span class="line">  <span class="comment">// do something</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><a href="https://github.com/eggjs/egg-multipart#upload-multiple-files" target="_blank" rel="noopener">egg-multipart#upload-multiple-files</a></li>
+</ul>
+<h3 id="egg-userrole"><a class="markdown-anchor" href="#egg-userrole">#</a> egg-userrole</h3>
+<p>DO NOT support 1.x role definition, because koa-roles is no longer compatible.
+The <code>Context</code> has changed from <code>this</code> to the first argument <code>ctx</code>, the original <code>scope</code> now is the second argument.</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// old</span></span><br><span class="line">app.role.use(<span class="string">'user'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> !!<span class="keyword">this</span>.user;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// new</span></span><br><span class="line">app.role.use(<span class="function">(<span class="params">ctx, scope</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> !!ctx.user</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.role.use(<span class="string">'user'</span>, ctx =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> !!ctx.user;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<ul>
+<li><a href="https://github.com/koajs/koa-roles/pull/13" target="_blank" rel="noopener">koajs/koa-roles#13</a></li>
+<li><a href="https://github.com/eggjs/egg-userrole/pull/9" target="_blank" rel="noopener">eggjs/egg-userrole#9</a></li>
+</ul>
+<h2 id="further-upgrade"><a class="markdown-anchor" href="#further-upgrade">#</a> Further upgrade</h2>
+<p>Due to the complete compatibility to Egg 1.x, we can finish the upgrade quickly.</p>
+<p>But in order to keep the coding style consistent, as well as a better performance improvement and more developer-friendly error stack logs, we suggest developers to make a further upgrade:</p>
+<ul>
+<li>Use recommended code style, see <a href="./style-guide.html">Style guide</a></li>
+<li><a href="#use-koa2-style-middleware">Use Koa style middleware</a></li>
+<li><a href="#yieldable-to-awaitable">Change <code>yieldable</code> to <code>awaitable</code> in function invoke</a></li>
+</ul>
+<h3 id="use-koa2-styled-middleware"><a class="markdown-anchor" href="#use-koa2-styled-middleware">#</a> Use Koa2-styled middleware</h3>
+<blockquote>
+<p>2.x is compatible to 1.x-styled middleware, so it's still functional without any changes.</p>
+</blockquote>
+<ul>
+<li>Use Koa 2's <code>(ctx, next)</code> arguments style in callback function
+<ul>
+<li>The 1st argument is <code>ctx</code>, means context, it is an instance of <a href="./basics/extend.html#Context">Context</a></li>
+<li>The 2nd argument is <code>next</code>, use await to execute it for the coming logics.</li>
+</ul>
+</li>
+<li>Using <code>async (ctx, next) =&gt; {}</code> is not recommended, which prevents anonymous function in error stack.</li>
+<li>Change <code>yield next</code> to <code>await next()</code>.</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1.x</span></span><br><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span>* <span class="title">responseTime</span>(<span class="params">next</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> start = <span class="built_in">Date</span>.now();</span><br><span class="line">    <span class="keyword">yield</span> next;</span><br><span class="line">    <span class="keyword">const</span> delta = <span class="built_in">Math</span>.ceil(<span class="built_in">Date</span>.now() - start);</span><br><span class="line">    <span class="keyword">this</span>.set(<span class="string">'X-Response-Time'</span>, delta + <span class="string">'ms'</span>);</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2.x</span></span><br><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">responseTime</span>(<span class="params">ctx, next</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> start = <span class="built_in">Date</span>.now();</span><br><span class="line">    <span class="comment">// Note, differ from the generator function middleware, next is a function, we're executing it here</span></span><br><span class="line">    <span class="keyword">await</span> next();</span><br><span class="line">    <span class="keyword">const</span> delta = <span class="built_in">Math</span>.ceil(<span class="built_in">Date</span>.now() - start);</span><br><span class="line">    ctx.set(<span class="string">'X-Response-Time'</span>, delta + <span class="string">'ms'</span>);</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="yieldable-to-awaitable"><a class="markdown-anchor" href="#yieldable-to-awaitable">#</a> yieldable to awaitable</h3>
+<blockquote>
+<p>async was supported in Egg 1.x, thus if the middleware is already async-base, we could skip this section.</p>
+</blockquote>
+<p><a href="https://github.com/tj/co" target="_blank" rel="noopener">co</a> supports <code>yieldable</code> compatibility types:</p>
+<ul>
+<li>promises</li>
+<li>array (parallel execution)</li>
+<li>objects (parallel execution)</li>
+<li>thunks (functions)</li>
+<li>generators (delegation)</li>
+<li>generator functions (delegation)</li>
+</ul>
+<p>Despite both <code>generator</code> and <code>async</code> have the same program models, but we may still need to refactor our codes correspondingly after removing <code>co</code> because of the above special handling from <code>co</code>.</p>
+<h4 id="promise"><a class="markdown-anchor" href="#promise">#</a> promise</h4>
+<p>We can replace it directly:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">echo</span>(<span class="params">msg</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">Promise</span>.resolve(msg);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">yield</span> echo(<span class="string">'hi egg'</span>);</span><br><span class="line"><span class="comment">// change to</span></span><br><span class="line"><span class="keyword">await</span> echo(<span class="string">'hi egg'</span>);</span><br></pre></td></tr></table></figure>
+<h4 id="array-yield"><a class="markdown-anchor" href="#array-yield">#</a> array - yield []</h4>
+<p><code>yeild []</code> is normally used to send concurrent requests, such as:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> [ news, user ] = <span class="keyword">yield</span> [</span><br><span class="line">  ctx.service.news.list(topic),</span><br><span class="line">  ctx.service.user.get(uid),</span><br><span class="line">];</span><br></pre></td></tr></table></figure>
+<p>In this case, use <code>Promise.all()</code> to wrap it:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> [ news, user ] = <span class="keyword">await</span> <span class="built_in">Promise</span>.all([</span><br><span class="line">  ctx.service.news.list(topic),</span><br><span class="line">  ctx.service.user.get(uid),</span><br><span class="line">]);</span><br></pre></td></tr></table></figure>
+<h4 id="object-yield"><a class="markdown-anchor" href="#object-yield">#</a> object - yield {}</h4>
+<p>Sometimes <code>yield {}</code> and <code>yield map</code> can also be used to send concurrent requests, but it may be a bit complex in this place because <code>Promise.all</code> doesn't support Object argument.</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/service/biz.js</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BizService</span> <span class="keyword">extends</span> <span class="title">Service</span> </span>&#123;</span><br><span class="line">  * list(topic, uid) &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      news: ctx.service.news.list(topic),</span><br><span class="line">      user: ctx.service.user.get(uid),</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// app/controller/home.js</span></span><br><span class="line"><span class="keyword">const</span> &#123; news, user &#125; = <span class="keyword">yield</span> ctx.service.biz.list(topic, uid);</span><br></pre></td></tr></table></figure>
+<p>It's recommended to use <code>await Promise.all([])</code>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/service/biz.js</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BizService</span> <span class="keyword">extends</span> <span class="title">Service</span> </span>&#123;</span><br><span class="line">  list(topic, uid) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Promise</span>.all([</span><br><span class="line">      ctx.service.news.list(topic),</span><br><span class="line">      ctx.service.user.get(uid),</span><br><span class="line">    ]);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// app/controller/home.js</span></span><br><span class="line"><span class="keyword">const</span> [ news, user ] = <span class="keyword">await</span> ctx.service.biz.list(topic, uid);</span><br></pre></td></tr></table></figure>
+<p>If the interfaces are unchangeable, e can do things below as a workaround:</p>
+<ul>
+<li>Use <a href="https://github.com/eggjs/egg-core/blob/da4ba1784175c43217125f3d5cd7f0be3d5396bf/lib/egg.js#L353" target="_blank" rel="noopener">app.toPromise</a> method provided by our Utils.</li>
+<li><strong>This is built on top of the <a href="https://github.com/tj/co" target="_blank" rel="noopener">co</a>, so it may still cause performance issue and returning inaccurate error stacks, so this is not recommended.</strong></li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; news, user &#125; = <span class="keyword">await</span> app.toPromise(ctx.service.biz.list(topic, uid));</span><br></pre></td></tr></table></figure>
+<h4 id="others"><a class="markdown-anchor" href="#others">#</a> Others</h4>
+<ul>
+<li>thunks (functions)</li>
+<li>generators (delegation)</li>
+<li>generator functions (delegation)</li>
+</ul>
+<p>Use <code>async function</code> to replace the above functions, or use <a href="https://github.com/eggjs/egg-core/blob/da4ba1784175c43217125f3d5cd7f0be3d5396bf/lib/egg.js#L344" target="_blank" rel="noopener">app.toAsyncFunction</a> alternatively.</p>
+<p><strong>Note</strong></p>
+<ul>
+<li><a href="https://github.com/eggjs/egg-core/blob/da4ba1784175c43217125f3d5cd7f0be3d5396bf/lib/egg.js#L344" target="_blank" rel="noopener">toAsyncFunction</a> and <a href="https://github.com/eggjs/egg-core/blob/da4ba1784175c43217125f3d5cd7f0be3d5396bf/lib/egg.js#L353" target="_blank" rel="noopener">toPromise</a> are wrappers of <a href="https://github.com/tj/co" target="_blank" rel="noopener">co</a>, thus it may cause performance lost and error stack problems. So we're recommending developers to use all-chain upgrade.</li>
+<li><a href="https://github.com/eggjs/egg-core/blob/da4ba1784175c43217125f3d5cd7f0be3d5396bf/lib/egg.js#L344" target="_blank" rel="noopener">toAsyncFunction</a> doesn't have performance lost when invokes async function.</li>
+</ul>
+<p>@sindresorhus has written a lot <a href="https://github.com/sindresorhus/promise-fun" target="_blank" rel="noopener">promise-based helpers</a>, use them together with async function could make source code more readable.</p>
+<h2 id="plugin-update-2"><a class="markdown-anchor" href="#plugin-update-2">#</a> Plugin update</h2>
+<p><code>App developers</code> just need to update the upgraded plugins by <code>plugin developers</code>, or use <code>egg-bin autod</code> command we've prepared to quickly update.</p>
+<p>The following content is for <code>plugin developers</code>, it shows how to update the plugins:</p>
+<h3 id="update-precautions"><a class="markdown-anchor" href="#update-precautions">#</a> Update precautions</h3>
+<ul>
+<li>Finish the upgrade items above.
+<ul>
+<li>Replace all <code>generator function</code> with <code>async function</code>.</li>
+<li>Upgrade middlewares.</li>
+</ul>
+</li>
+<li>Interfaces compatibility (optional), see following.</li>
+<li>Release a major version.</li>
+</ul>
+<h3 id="interfaces-compatibility"><a class="markdown-anchor" href="#interfaces-compatibility">#</a> Interfaces compatibility</h3>
+<p>In some cases, the interface provided by <code>Plugin developers</code> supports both generator and async, normally it's wrapped by co.</p>
+<ul>
+<li>In 2.x, we suggest <code>async-first</code> to get a better performance and clearer error stacks.</li>
+<li>If necessary, please use <a href="https://github.com/eggjs/egg-core/blob/da4ba1784175c43217125f3d5cd7f0be3d5396bf/lib/egg.js#L344" target="_blank" rel="noopener">toAsyncFunction</a> and <a href="https://github.com/eggjs/egg-core/blob/da4ba1784175c43217125f3d5cd7f0be3d5396bf/lib/egg.js#L353" target="_blank" rel="noopener">toPromise</a> for compatibility.</li>
+</ul>
+<p>Like <a href="https://github.com/eggjs/egg-schedule" target="_blank" rel="noopener">egg-schedule</a> plugin, it supports generator or async to define the tasks in application level.</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// &#123;app_root&#125;/app/schedule/cleandb.js</span></span><br><span class="line">exports.task = <span class="function"><span class="keyword">function</span>* (<span class="params">ctx</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">yield</span> ctx.service.db.clean();</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// &#123;app_root&#125;/app/schedule/log.js</span></span><br><span class="line">exports.task = <span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">splitLog</span>(<span class="params">ctx</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">await</span> ctx.service.log.split();</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><code>Plugin developers</code> could simply wrap the following raw function:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// https://github.com/eggjs/egg-schedule/blob/80252ef/lib/load_schedule.js#L38</span></span><br><span class="line">task = app.toAsyncFunction(schedule.task);</span><br></pre></td></tr></table></figure>
+<h3 id="rules-of-plugin-release"><a class="markdown-anchor" href="#rules-of-plugin-release">#</a> Rules of Plugin release</h3>
+<ul>
+<li><strong>Major version releasement</strong>
+<ul>
+<li>All the APIs are promise based, and there's no <code>async</code> in source code. e.g. <a href="https://github.com/eggjs/egg-view-nunjucks" target="_blank" rel="noopener">egg-view-nunjucks</a></li>
+</ul>
+</li>
+<li>Modify <code>package.json</code>
+<ul>
+<li>Change <code>egg</code> in <code>devDependencies</code> to <code>^2.0.0</code>.</li>
+<li>Change <code>engines.node</code> to <code>&gt;=8.0.0</code>.</li>
+<li>Change <code>ci.version</code> to <code>8, 9</code>, reinstall dependencies to generate new travis config files.</li>
+</ul>
+</li>
+<li>Update examples in <code>README.md</code> with async function.</li>
+<li>Write instructions for upgrade.</li>
+<li>(optional) Change <code>test/fixtures</code> to async function, and it's recommended to create a PR for code preview.</li>
+</ul>
+<p>In case the previous versions still requires maintenance:</p>
+<ul>
+<li>Create a new branch which based on previous <code>1.x</code> version.</li>
+<li>Change the <code>publishConfig.tag</code> property in <code>package.json</code> to <code>release-1.x</code> in previous version.</li>
+<li>If the previous version has new Bugfix, tag it as <code>release-1.x</code> when publishing, so users may use <code>npm i egg-xx@release-1</code> to import the old version.</li>
+<li>See <a href="https://docs.npmjs.com/cli/dist-tag" target="_blank" rel="noopener">npm documentations</a>.</li>
+</ul>
     
         </article>  
       </div>      
   </div>
 
   <div class="toc" id="toc">
-  
+  <ol class="toc-detail"><li class="toc-detail-item toc-detail-level-2"><a class="toc-detail-link" href="#background"><span class="toc-detail-number">1.</span> <span class="toc-detail-text"># Background</span></a></li><li class="toc-detail-item toc-detail-level-2"><a class="toc-detail-link" href="#quick-upgrade"><span class="toc-detail-number">2.</span> <span class="toc-detail-text"># Quick upgrade</span></a></li><li class="toc-detail-item toc-detail-level-2"><a class="toc-detail-link" href="#plugin-update"><span class="toc-detail-number">3.</span> <span class="toc-detail-text"># Plugin update</span></a><ol class="toc-detail-child"><li class="toc-detail-item toc-detail-level-3"><a class="toc-detail-link" href="#egg-multipart"><span class="toc-detail-number">3.1.</span> <span class="toc-detail-text"># egg-multipart</span></a></li><li class="toc-detail-item toc-detail-level-3"><a class="toc-detail-link" href="#egg-userrole"><span class="toc-detail-number">3.2.</span> <span class="toc-detail-text"># egg-userrole</span></a></li></ol></li><li class="toc-detail-item toc-detail-level-2"><a class="toc-detail-link" href="#further-upgrade"><span class="toc-detail-number">4.</span> <span class="toc-detail-text"># Further upgrade</span></a><ol class="toc-detail-child"><li class="toc-detail-item toc-detail-level-3"><a class="toc-detail-link" href="#use-koa2-styled-middleware"><span class="toc-detail-number">4.1.</span> <span class="toc-detail-text"># Use Koa2-styled middleware</span></a></li><li class="toc-detail-item toc-detail-level-3"><a class="toc-detail-link" href="#yieldable-to-awaitable"><span class="toc-detail-number">4.2.</span> <span class="toc-detail-text"># yieldable to awaitable</span></a></li></ol></li><li class="toc-detail-item toc-detail-level-2"><a class="toc-detail-link" href="#plugin-update-2"><span class="toc-detail-number">5.</span> <span class="toc-detail-text"># Plugin update</span></a><ol class="toc-detail-child"><li class="toc-detail-item toc-detail-level-3"><a class="toc-detail-link" href="#update-precautions"><span class="toc-detail-number">5.1.</span> <span class="toc-detail-text"># Update precautions</span></a></li><li class="toc-detail-item toc-detail-level-3"><a class="toc-detail-link" href="#interfaces-compatibility"><span class="toc-detail-number">5.2.</span> <span class="toc-detail-text"># Interfaces compatibility</span></a></li><li class="toc-detail-item toc-detail-level-3"><a class="toc-detail-link" href="#rules-of-plugin-release"><span class="toc-detail-number">5.3.</span> <span class="toc-detail-text"># Rules of Plugin release</span></a></li></ol></li></ol>
 </div>
 
 <script>
