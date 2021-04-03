@@ -249,7 +249,7 @@ mobileTrigger.onclick = function(e) {
 <li>在 Router 定义中， 可以支持多个 Middleware 串联执行</li>
 <li>Controller 必须定义在 <code>app/controller</code> 目录中。</li>
 <li>一个文件里面也可以包含多个 Controller 定义，在定义路由的时候，可以通过 <code>${fileName}.${functionName}</code> 的方式指定对应的 Controller。</li>
-<li>Controller 支持子目录，在定义路由的时候，可以通过 <code>${directoryName}.${fileName}.${functionName}</code> 的方式制定对应的 Controller。</li>
+<li>Controller 支持子目录，在定义路由的时候，可以通过 <code>${directoryName}.${fileName}.${functionName}</code> 的方式指定对应的 Controller。</li>
 </ul>
 <p>下面是一些路由定义的方式：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/router.js</span></span><br><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="params">app</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; router, controller &#125; = app;</span><br><span class="line">  router.get(<span class="string">'/home'</span>, controller.home);</span><br><span class="line">  router.get(<span class="string">'/user/:id'</span>, controller.user.page);</span><br><span class="line">  router.post(<span class="string">'/admin'</span>, isAdmin, controller.admin);</span><br><span class="line">  router.post(<span class="string">'/user'</span>, isLoginUser, hasAdminPermission, controller.user.create);</span><br><span class="line">  router.post(<span class="string">'/api/v1/comments'</span>, controller.v1.comments.create); <span class="comment">// app/controller/v1/comments.js</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>

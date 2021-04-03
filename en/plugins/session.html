@@ -234,6 +234,10 @@ mobileTrigger.onclick = function(e) {
 <p>Once you use external session store, session is strong dependent on your external store, you can't access session if your external store is down. <strong>Use external session stores only if necessary, avoid use session as a cache, keep session lean and stored by cookie!</strong></p>
 <h2 id="configuration"><a class="markdown-anchor" href="#configuration">#</a> Configuration</h2>
 <p>Support all configurations in <a href="https://github.com/koajs/session" target="_blank" rel="noopener">koa-session</a>.</p>
+<ul>
+<li>logValue</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Support not to print the session value when session event trigger log. Default to be true.</span><br></pre></td></tr></table></figure>
 <p><a href="https://github.com/eggjs/egg-session/blob/master/config/config.default.js" target="_blank" rel="noopener">View the default configurations</a></p>
 <h2 id="questions-suggestions"><a class="markdown-anchor" href="#questions-suggestions">#</a> Questions &amp; Suggestions</h2>
 <p>Please open an issue <a href="https://github.com/eggjs/egg/issues" target="_blank" rel="noopener">here</a>.</p>
