@@ -29,7 +29,7 @@ fn().then(res => console.log(res)).catch(err => console.error(err.stack));
 
 The design styles of Koa and Express are very similar, The underlying basic library is the same, [HTTP library](https://github.com/jshttp). There are several significant differences between them. Besides the asynchronous solution by default mentioned above, there are the following points.
 
-### Midlleware
+### Middleware
 
 The middleware in Koa is different from Express, Koa use the onion model:
 
